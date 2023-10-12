@@ -1,48 +1,61 @@
 import {encoded, translations} from './data.js';
 
 console.log("Let's rock");
-// console.log(encoded, translations)
+console.log(encoded, translations);
 
+// set exceptions
 const excluded = ['groupId', 'service', 'formatSize', 'ca'];
-let uniqueIds = []; // unique ids list
 
-function decode(data, encryption) {
-  let encrypKeys = Object.keys(encryption);
-  let unique = [];
+function decode(data, decoder) {
+  let encrypKeys = Object.keys(decoder);
+  let uniqueIds = []; // unique ids list
+  const idsUsage = {};
+  let uniqueIdsByUsage; // unique ids by usage
 
-  let newData = data.map(card => {
-    let cardKeys = Object.keys(card);
+  const decoded = data.map(item => {
+    const decodedItem = {};
 
-    cardKeys.forEach(key => {
+    Object.keys(item).forEach(key => {
 
-      // check exceptions to proceed decoding
-      if (!excluded.includes(key)) {
-
-        // get value(id) & check translations
-        if (!encrypKeys.includes(card[key])) {
+      // check exceptions & 'Id' suffix to proceed decoding
+      if (!excluded.includes(key) & key.endsWith('Id')) {
+        // get value(id) & check decoder
+        if (!encrypKeys.includes(item[key])) {
           // id is unique
-          unique.push(card[key]);
+          uniqueIds.push(item[key]);
         } else {
           // id can be encoded
-          console.log('card[key]', card[key]);
-          console.log('encryption[key]', encryption[card[key]]);
-          card[key] = encryption[card[key]];
+          decodedItem[key] = decoder[item[key]];
         }
 
+        if (!idsUsage[item[key]]) {
+          idsUsage[item[key]] = 1;
+        } else {
+          idsUsage[item[key]] += 1;
+        }
+
+      } else {
+        decodedItem[key] = item[key];
       }
-      
     });
 
-    return card;
+    uniqueIds = [...new Set(uniqueIds)];
 
+    if (!Object.values(idsUsage).includes(1)) {
+      uniqueIdsByUsage = 'none';
+    } else {
+      uniqueIdsByUsage = Object.keys(idsUsage).filter(key => idsUsage[key] === 1);
+    }
+
+    return decodedItem;
   });
-
-  uniqueIds = [...new Set(unique)];
-  return newData;
+  
+  return [decoded, uniqueIds, uniqueIdsByUsage];
 }
 
-// let encoding begin!
-let decoded = decode(encoded, translations);
+// let decoding begin!
+let [decoded, uniqueIds, uniqueIdsByUsage] = decode(encoded, translations);
 
 console.log('decoded', decoded);
 console.log('unique', uniqueIds);
+console.log('uniqueByUsage', uniqueIdsByUsage);
