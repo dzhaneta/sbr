@@ -12,7 +12,7 @@ const excluded = ['groupId', 'service', 'formatSize', 'ca'];
 
 function decode(data, decoder) {
   let encrypKeys = Object.keys(decoder);
-  let uniqueIds = []; // unique ids list
+  let uniqueIds = new Set(); // unique ids list
   const idsUsage = {};
   let uniqueIdsByUsage; // unique ids by usage
 
@@ -26,7 +26,7 @@ function decode(data, decoder) {
         // get value(id) & check decoder
         if (!encrypKeys.includes(item[key])) {
           // id is unique & cannot be decoded
-          uniqueIds.push(item[key]);
+          uniqueIds.add(item[key]);
           decodedItem[key] = item[key];
         } else {
           // id can be decoded
@@ -44,8 +44,6 @@ function decode(data, decoder) {
       }
     });
 
-    uniqueIds = [...new Set(uniqueIds)];
-
     if (!Object.values(idsUsage).includes(1)) {
       uniqueIdsByUsage = 'none';
     } else {
@@ -62,5 +60,5 @@ function decode(data, decoder) {
 let [decoded, uniqueIds, uniqueIdsByUsage] = decode(encoded, translations);
 
 console.log('decoded', decoded);
-console.log('unique', uniqueIds);
+console.log('unique', [...uniqueIds]);
 console.log('uniqueByUsage', uniqueIdsByUsage);
