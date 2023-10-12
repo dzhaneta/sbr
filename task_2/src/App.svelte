@@ -1,47 +1,79 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  // api запрос и вытащить все валюты
+
+  let currencies = ['USD', 'EUR', 'RUR'];
+
+  let selectedCurrency1 = "";
+  let selectedCurrency2 = "";
+  let sum1: number;
+  let sum2: number;
 </script>
 
 <main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
+  <h1>Конвертер валют</h1>
 
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
+  <p class="how-to">
+    Выберите две валюты из выпадающих списков и введите сумму валюты, которую
+    необходимо сконвертировать.
   </p>
 
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+  <form class="inputs-container">
+    <fieldset class="fieldset">
+      <select bind:value={selectedCurrency1} on:change={() => (sum1 = 0)}>
+        {#each currencies as currency}
+          <option value={currency}>
+            {currency}
+          </option>
+        {/each}
+      </select>
+      <input
+        bind:value={sum1}
+        disabled='{selectedCurrency1 == "" && selectedCurrency2 == ""}'
+        type="number"
+        class="input"
+        placeholder="Введите сумму"
+      >
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <select bind:value={selectedCurrency2} on:change={() => (sum2 = 0)}>
+        {#each currencies as currency}
+          <option value={currency}>
+            {currency}
+          </option>
+        {/each}
+      </select>
+      <input
+        bind:value={sum2}
+        disabled='{selectedCurrency1 == "" && selectedCurrency2 == ""}'
+        type="number" 
+        class="input" 
+        placeholder="Введите сумму"
+      >
+    </fieldset>
+  </form>
+
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
+  .how-to {
     color: #888;
+  }
+
+  .inputs-container {
+    margin: 40px 0;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: none;
+  }
+  
+  .input {
+    width: 250px;
   }
 </style>
