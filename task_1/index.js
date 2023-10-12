@@ -1,6 +1,6 @@
-// из ТЗ не до конца понятна уникальность id, поэтому ищем id, которые 
-// попадались в encoded 1 раз, а также id, которые использовались при 
-// декодировании 1 раз
+// из ТЗ не до конца понятна уникальность id, поэтому ищем id, которых не
+// оказалось в translations, а также id, которые 
+// попадались в encoded 1 раз
 
 import {encoded, translations} from './data.js';
 
@@ -25,10 +25,11 @@ function decode(data, decoder) {
       if (!excluded.includes(key) & key.endsWith('Id')) {
         // get value(id) & check decoder
         if (!encrypKeys.includes(item[key])) {
-          // id is unique
+          // id is unique & cannot be decoded
           uniqueIds.push(item[key]);
+          decodedItem[key] = item[key];
         } else {
-          // id can be encoded
+          // id can be decoded
           decodedItem[key] = decoder[item[key]];
         }
 
