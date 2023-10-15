@@ -1,107 +1,108 @@
 <script lang="ts">
   import { onMount } from "svelte";
-
-  type Currency = string;
-  type Sum = number | null;
+  import Loader from "./lib/Loader.svelte";
 
   let currencies: string[] = [];
+  let rates: { [index: string]: number } = {};
+  let isLoading: boolean = false;
 
-  let selectedCurrency1: Currency = "";
-  let selectedCurrency2: Currency = "";
+  type Currency = string;
+  type Sum = number;
 
-  let sum1: Sum;
-  let sum2: Sum;
+  let currencyOne: Currency = "RUB";
+  let currencyTwo: Currency = "USD";
 
-  // api запрос и вытащить все валюты в интерфейс
+  let sumOne: Sum = 0;
+  let sumTwo: Sum = 0;
+
+  // api req for currencies & rates setup
   onMount(async () => {
+    isLoading = true;
+
     try {
-      let response = await fetch("https://open.er-api.com/v6/latest/USD");
+      let response = await fetch("https://open.er-api.com/v6/latest/RUB");
       let data = await response.json();
       
-      console.log(Object.keys(data["rates"]));
       currencies = Object.keys(data["rates"]);
+      rates = data.rates;
     } catch(err) {
       throw new Error("Упс! Произошла ошибка при запросе с сервера");
+    } finally {
+      isLoading = false;
     }
   });
 
-  async function exchangeHandler(inputCurrency: Currency) {
-    console.log('exchange start!');
-    let outputCurrency: Currency;
-    let inputSum: Sum;
-    let outputSum: Sum;
-    if (inputCurrency === selectedCurrency1) {
-      inputSum = sum1;
-      outputCurrency = selectedCurrency2;
-    } else {
-      inputSum = sum2;
-      outputCurrency = selectedCurrency1;
-    }
+  // SUM CHANGE HANDLERS
+  const onChangeSumOne = (inputSum: Sum) => {
+    console.log('exchange 1 start!');
+    const res: Sum = (inputSum / rates[currencyOne]) * rates[currencyTwo];
+    sumTwo = Number(res.toFixed(2));
+  }
 
-    try {
-      let response = await fetch(`https://open.er-api.com/v6/latest/${inputCurrency}`);
-      let data = await response.json();
-      let exchangeRate = data.rates[outputCurrency];
-      outputSum = Number((exchangeRate * inputSum).toFixed(2));
-      console.log('exchangeRate', exchangeRate);
-      console.log('inputSum', inputSum);
-      inputCurrency === selectedCurrency1
-        ? sum2 = outputSum
-        : sum1 = outputSum;
-    } catch(err) {
-      throw new Error("Упс! Произошла ошибка при запросе с сервера");
-    }
+  const onChangeSumTwo = (inputSum: Sum) => {
+    console.log('exchange 2 start!');
+    const res: Sum = (rates[currencyOne] / rates[currencyTwo]) * inputSum;
+    sumOne = Number(res.toFixed(2));
+  }
+
+  // CURRENCY CHANGE HANDLERS
+  const onCurrencyChange = (currency: Currency) => {
+    currency === currencyOne
+      ? onChangeSumOne(sumOne)
+      : onChangeSumTwo(sumTwo);
   }
 
 </script>
 
 <main>
   <h1>Конвертер валют</h1>
-
+  
   <p class="how-to">
     Выберите две валюты из выпадающих списков и введите сумму валюты, которую
     необходимо сконвертировать.
   </p>
 
-  <form class="inputs-container">
-    <fieldset class="fieldset">
-      <select bind:value={selectedCurrency1} on:change={() => (sum1 = null)}>
-        {#each currencies as currency}
-          <option value={currency}>
-            {currency}
-          </option>
-        {/each}
-      </select>
-      <input
-        bind:value={sum1}
-        on:keydown={() => exchangeHandler(selectedCurrency1)}
-        disabled="{selectedCurrency1 === "" || selectedCurrency2 === ""}"
-        type="number"
-        min="1"
-        class="input"
-        placeholder="Введите сумму"
-      >
-    </fieldset>
+  {#if isLoading === true}
+    <Loader />
+  {:else}
+    <form class="inputs-container">
+      <fieldset class="fieldset">
+        <select bind:value={currencyOne} on:change={() => onCurrencyChange(currencyOne)}>
+          {#each currencies as currency}
+            <option value={currency}>
+              {currency}
+            </option>
+          {/each}
+        </select>
+        <input
+          bind:value={sumOne}
+          on:keyup={() => onChangeSumOne(sumOne)}
+          type="number"
+          min="1"
+          class="input"
+          placeholder="Введите сумму"
+        >
+      </fieldset>
 
-    <fieldset class="fieldset">
-      <select bind:value={selectedCurrency2} on:change={() => (sum2 = null)}>
-        {#each currencies as currency}
-          <option value={currency}>
-            {currency}
-          </option>
-        {/each}
-      </select>
-      <input
-        bind:value={sum2}
-        on:keydown={() => exchangeHandler(selectedCurrency2)}
-        disabled="{selectedCurrency1 === "" || selectedCurrency2 === ""}"
-        type="number" 
-        min="1"
-        class="input" 
-        placeholder="Введите сумму"
-      >
-    </fieldset>
-  </form>
+      <fieldset class="fieldset">
+        <select bind:value={currencyTwo} on:change={() => onCurrencyChange(currencyTwo)}>
+          {#each currencies as currency}
+            <option value={currency}>
+              {currency}
+            </option>
+          {/each}
+        </select>
+        <input
+          bind:value={sumTwo}
+          on:keyup={() => onChangeSumTwo(sumTwo)}
+          type="number" 
+          min="1"
+          class="input" 
+          placeholder="Введите сумму"
+        >
+      </fieldset>
+    </form>
+  {/if}
 
 </main>
 
