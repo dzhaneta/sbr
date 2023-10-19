@@ -15,7 +15,7 @@
   let sumOne: Sum = 0;
   let sumTwo: Sum = 0;
 
-  // api req for currencies & rates setup
+  // API REQ FOR CURRENCIES & RATES SETUP
   onMount(async () => {
     isLoading = true;
 
